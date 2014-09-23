@@ -1,0 +1,380 @@
+<!doctype html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js ie6 oldie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7 oldie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>Lane Migration Tracker</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <!-- CSS: implied media=all -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/custom.css">
+  <link type="text/css" href="css/ui-lightness/jquery-ui-1.8.16.custom.css" rel="stylesheet" />	
+  <!-- end CSS-->
+
+  <!-- More ideas for your <head> here: h5bp.com/d/head-Tips -->
+
+  <!-- All JavaScript at the bottom, except for Modernizr / Respond.
+       Modernizr enables HTML5 elements & feature detects; Respond is a polyfill for min/max-width CSS3 Media Queries
+       For optimal performance, use a custom Modernizr build: www.modernizr.com/download/ -->
+  <script src="js/libs/modernizr-2.0.6.min.js"></script>
+</head>
+
+<body>
+  <div id="parts">
+	<div id="statusHelp" style="display:none;">
+		<ul>
+			<li><span class='stub'>Stub</span> - an empty page has been created</li>
+			<li><span class='review'>Review</span> - ready for review by</li>
+			<li><span class='complete'>Complete</span> - page is active</li>
+			<li><span class='checked-out'>Checked-Out</span> - page is being worked on</li>
+			<li><span class='archive-todo'>Archive-Todo</span> - page needs approval for archiving</li>
+			<li><span class='archived'>Archived</span> - page has been archived</li>
+			<li><span class='intranet-todo'>Intranet-Todo</span> - page needs approval for move to intranet</li>
+			<li><span class='intraneted'>Intraneted</span> - page has been moved to intranet</li>
+		</ul>
+	</div>
+	<div id="newFormContainer" style="display:none;">
+		<div id="formmessage" class="ui-state-error ui-corner-all" style="display:none;"><p><span style="float: left; margin-right: .3em;" class="ui-icon ui-icon-alert"></span></p></div>
+		<form method="post" id="newurlform" action="submit.php">
+			<label><span class="formlable">Node #:</span>
+				<input size="30" type="text" name="nodenumber"></label><br>
+			<label><span class="formlabel">Old:</span>
+				<input size="30" type="text" name="old"></label><br>
+			<label><span class="formlabel">New</span>
+				<input size="30" type="text" name="new"></label><br>
+			<label><span>Chunk</span>
+				<input size="30" type="text" name="chunk"></label><br>
+			<label><span>Status</span>
+				<select id='statusselector' name="status">
+					<option value="stub">Stub</option>
+					<option value="review">Review</option>
+					<option value="complete">Complete</option>
+					<option value="checked-out">Checked-Out</option>
+					<option value="archive-todo">Archive-Todo</option>
+					<option value="archived">Archived</option>
+					<option value="intranet-todo">Intranet-Todo</option>
+					<option value="intraneted">Intraneted</option>
+				</select>
+			</label><br>
+			<input type="hidden" name="type" value="edit">
+			<input type="submit" value="Submit">
+		</form>
+	</div>
+	<div id="historyDialog" style="display:none;">
+		<p>History for: <span id="historyoldlinkname"></span><br> (currently points to <span id="historynewlinkname"></span>)</p>
+		<table>
+			<thead>
+				<th scope="col">Date/Time</th>
+				<th scope="col">Action</th>
+				<th scope="col">Author</th>
+			</thead>
+			<tbody>
+	
+			</tbody>
+		</table>
+	</div>
+	<div id="loginDialog" style="display:none;">
+		<div id="loginformmessage" class="ui-state-error ui-corner-all" style="display:none;"><p><span style="float: left; margin-right: .3em;" class="ui-icon ui-icon-alert"></span></p></div>
+		<form id="loginform" action="login.php" method="post">
+			<label><span class="formlabel">Email</span>
+				<input size="30" type="text" name="email"></label>
+			<label><span class="formlabel">Password</span>
+				<input size="30" type="password" name="password"></label>
+			<input type="submit" value="Login">
+		</form>
+	</div>
+  </div>
+
+  <div id="container">
+    <header>
+		<div id='userpicture'>
+			<img src='http://www.gravatar.com/avatar/6f49daffc3110d23ce3a7da5d419fdf2?s=103'>
+		</div>
+		<div id='rightside'>
+			<div id='topcontainer'>
+				<h1>Lane Migration Tracker</h1>
+				<div id='globalmessage'><p>If you need an account here, please see Kyle Schmidt in IT</p></div>
+			</div>
+			<div id='secondrow'>
+				<button class='punch' id="newLink">Add a New Link</button>
+				<button class='punch' id="loginout">Login</button>
+				<label>Highlight a Chunk:&nbsp;<select id='chunkchooser' onchange='setbackground(this)'>
+				</select></label>
+			</div>
+		</div>
+    </header>
+
+    <div id="main" role="main">
+		<div id="links_table_container">
+			<table id="links_table">
+				<thead>
+					<tr>
+						<th scope="col">Node #</th>
+						<th scope="col">New Url</th>
+						<th scope="col">Old Url</th>
+						<th scope="col">Chunk</th>
+						<th scope="col">Status<a id='statusHelpButton' href='#'><span style='float:right' class='ui-icon ui-icon-comment'></span></a></th>
+						<th scope="col"></th>
+						<th scope="col"></th>
+						<th scope="col"></th>
+						<th scope="col">Last Edit</th>
+						<th scope="col">Last Edit time</th>
+					</tr>
+				</thead>
+				<tbody>
+
+				</tbody>
+			</table>
+		</div>
+    </div>
+    <footer>
+
+    </footer>
+  </div> <!--! end of #container -->
+
+  <!-- JavaScript at the bottom for fast page loading -->
+
+  <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if offline -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="js/libs/jquery-1.6.2.min.js"><\/script>')</script>
+  <script src="js/libs/jquery-ui-1.8.16.custom.min.js"></script>
+
+  <script defer src="js/linksTable.js"></script>
+  <script defer src="js/libs/jquery.tablesorter.min.js"></script> 
+  <script defer src="js/libs/jquery.uitablefilter.js"></script> 
+  <script defer>
+/* Run to Set the Background Color of a Table Row */
+function setbackground(chunk){
+	$('tr').css('background-color','white');
+	if(chunk.value != ''){
+		$('.' + chunk.value).css('background-color','#FC6C85');
+	}
+}
+/* Run to Reset the chunks of the dropdown */
+function setchunks(){
+	$.get("calls.php?chunks=y", function(data){
+		$("#chunkchooser option").remove();
+		$('#chunkchooser').append($('<option></option>').attr("value", '').text('<None>'));	
+		//now for each chunk, add an option to our select box
+		for(i=0; i < data.length; i++){
+			$('#chunkchooser').append($('<option></option>').attr("value", data[i]).text(data[i]));	
+		}
+	},"json");
+}
+$(document).ready(function(){
+	//take care of some things that you don't need to be logged in for:
+    $("#links_table").tablesorter({
+            headers: {
+				5: { sorter: false },
+				6: { sorter: false },
+				7: { sorter: false },
+                8: { sorter: false },
+            },
+	});
+
+	//figure out if we're logged in
+	loggedIn = false;
+	$.get("login.php?session=0", function(data){
+		//hwe're logged in!
+		if (data.session != 0){
+			loggedIn = true;
+			//make login say log out
+			$('#loginout').html('Log Out ' + data.name);
+			$('#userpicture').children('img').attr('src','http://www.gravatar.com/avatar/'+data.email+'?s=103');
+		}
+	},"json");
+	$('#loginout').click(function(){
+		if(!loggedIn){
+			$('#loginDialog').dialog({modal:true,title:"Log in"});
+			$("#loginform").unbind('submit');
+			$("#loginDialog").bind("dialogclose", function(event, ui){ 
+				$("#loginformmessage").hide(); 	
+			});
+			$("#loginform").submit(function(event) {
+				event.preventDefault(); 
+				
+				/* get some values from elements on the page: */
+				var $form = $( this ),
+					email = $form.find( 'input[name="email"]' ).val(),
+					password = $form.find( 'input[name="password"]' ).val(),
+					url = $form.attr( 'action' );
+				/* Send the data using post and put the results in a div */
+				$.post( url, { email:email, password:password }, function(data) {
+					if(data.status == 1){
+				  		$("#loginDialog").dialog("close");
+						loggedIn = true;
+						$('#loginout').html('Log Out ' + data.name);
+						$('#userpicture').children('img').attr('src','http://www.gravatar.com/avatar/'+data.email+'?s=103');
+					}
+					else{
+						$("#loginformmessage").html('<p><span style="float: left; margin-right: .3em;" class="ui-icon ui-icon-alert"></span>' + data.message + '</p>');
+						$("#loginformmessage").show();
+					}
+				},"json");
+				return false;
+			});	
+		}
+		else{
+			$.get("login.php?logout=0", function(data){
+				loggedIn= false;
+				$('#loginform').find('input[name="email"]').val('');
+				$('#loginform').find('input[name="password"]').val('');
+				$('#userpicture').children('img').attr('src','http://www.gravatar.com/avatar/6f49daffc3110d23ce3a7da5d419fdf2?s=103');
+				$('#loginout').html('Log In');
+			});
+		}
+	});
+	$('#statusHelpButton').click(function(){
+		$('#statusHelp').dialog({modal:true, title:'Status Codes'});
+	});
+	$('#newLink').click(function(){
+		if(!loggedIn){
+			return false;
+		}
+		$(':input','#newurlform').not(':button, :submit, :reset').val('').removeAttr('checked').removeAttr('selected');
+	    $('#newFormContainer').dialog({modal:true, title:"Add a Link"});
+		/* Tell our form to close the error message when it gets closed */
+		$("#newFormContainer").bind("dialogclose", function(event, ui){ 
+			$("#formmessage").hide(); 	
+		});
+		$("#newurlform").find( 'input[name="type"]' ).val("new");
+		$("#newurlform").find( 'input[name="old"]' ).removeAttr('disabled');
+	    $('#newurlform:first *:input[type!=hidden]:first').focus();
+
+		$("#newurlform").unbind('submit');
+		//Add a form handler to our new row form:
+		$("#newurlform").submit(function(event) {
+			if(!loggedIn){
+				return false;
+			}
+			event.preventDefault(); 
+		    
+			/* get some values from elements on the page: */
+			var $form = $( this ),
+				nodenumber = $form.find( 'input[name="nodenumber"]' ).val(),
+				oldurl = $form.find( 'input[name="old"]' ).val(),
+				newurl = $form.find( 'input[name="new"]' ).val(),
+				chunk = $form.find( 'input[name="chunk"]' ).val(),
+				status = $form.find( 'select[name="status"]' ).val(),
+				type = $form.find( 'input[name="type"]' ).val(),
+				url = $form.attr( 'action' );
+			/* Send the data using post and put the results in a div */
+			$.post( url, { nodenumber: nodenumber, oldurl: oldurl, newurl: newurl, chunk: chunk, status: status, type: type }, function(data) {
+				if(data == 1){
+			  		$("#newFormContainer").dialog("close");
+				}
+				else{
+					$("#formmessage").html('<p><span style="float: left; margin-right: .3em;" class="ui-icon ui-icon-alert"></span>' + data + '</p>');
+					$("#formmessage").show();
+				}
+			});
+		});
+	});
+	$('a.delete').live('click', function(e) {
+		if(!loggedIn)
+			return false;
+		if(!confirm('Are you sure?'))
+			return false;
+		e.preventDefault();
+		parent = $(this).parent('td').parent('tr');
+		$.ajax({
+			type: 'get',
+			url: 'submit.php',
+			data: 'ajax=1&delete=' + $(this).attr('id').replace('delete-',''),
+ 			beforeSend: function() {
+        		parent.animate({'backgroundColor':'#fb6c6c'},300);
+      		},
+      		success: function() {
+        		parent.slideUp(300,function() {
+          		parent.remove();
+        	});
+      	}
+    	});
+  	});
+	$('a.history').live('click',function(e) {
+		e.preventDefault();
+	   $('#historyDialog').dialog({modal:true, minWidth:300, title:"Link History"});
+		//fetch the revision history for this element:
+		//get the id:
+		id = $(this).attr('id').replace('history-','');
+		$("#historyDialog tbody tr").remove();
+		$.get("calls.php?history=" + id, function(data){
+			if(data.length == 0){
+				$('#historyDialog').children('table').children('tbody').html('<tr><td colspan=2>Error: No history found</td></tr>');
+			}
+			else{
+				$('#historyoldlinkname').html(data[0].oldurl);
+				$('#historynewlinkname').html(data[0].newurl);
+				for(i=0; i < data.length; i++){
+					row = "<tr><td>" + data[i].time + "</td><td>" + data[i].action + "</td><td class='centerthis'><img class='tooltip' title='" + data[i].name + "'src='http://www.gravatar.com/avatar/" + data[i].email + "?s=20&d=mm'></td></tr>";
+					$('#historyDialog').children('table').children('tbody').append(row);				
+				}
+			}
+		});
+	});
+	$('a.edit').live('click',function(e){
+		if(!loggedIn){
+			return false;
+		}
+		e.preventDefault();
+		$("#newurlform").unbind('submit');
+		$('#newFormContainer').dialog({modal:true, title:"Edit Link"});
+		$("#newFormContainer").bind("dialogclose", function(event, ui){ 
+			$("#formmessage").hide(); 	
+		});
+		id = $(this).attr('id').replace('edit-','');
+		//get the data for this particular form, and rewrite the form's values
+		$.get("calls.php?rowdata="+id, function(data){
+			$("#newurlform").find( 'input[name="nodenumber"]').val(data[0].nodenumber),
+			$("#newurlform").find( 'input[name="old"]' ).val(data[0].oldurl),
+			$("#newurlform").find( 'input[name="new"]' ).val(data[0].newurl),
+			$("#newurlform").find( 'input[name="chunk"]' ).val(data[0].chunk),
+			$("#statusselector option[value="+data[0].status+"]").attr('selected','selected'),
+			$("#newurlform").find( 'input[name="type"]' ).val("edit");
+			$('#newurlform').find( 'input[name="old"]' ).attr('disabled','disabled');
+		});
+		$("#newurlform").submit(function(event) {
+			event.preventDefault(); 
+		    
+			/* get some values from elements on the page: */
+			var $form = $( this ),
+				nodenumber = $form.find( 'input[name="nodenumber"]' ).val(),
+				oldurl = $form.find( 'input[name="old"]' ).val(),
+				newurl = $form.find( 'input[name="new"]' ).val(),
+				chunk = $form.find( 'input[name="chunk"]' ).val(),
+				status = $form.find( 'select[name="status"]' ).val(),
+				type = $form.find( 'input[name="type"]' ).val(),
+				url = $form.attr( 'action' );
+			/* Send the data using post and put the results in a div */
+			$.post( url, { nodenumber: nodenumber, oldurl: oldurl, newurl: newurl, chunk: chunk, status: status, type:type }, function(data) {
+				if(data == 1){
+			  		$("#newFormContainer").dialog("close");
+				}
+				else{
+					$("#formmessage").html('<p><span style="float: left; margin-right: .3em;" class="ui-icon ui-icon-alert"></span>' + data + '</p>');
+					$("#formmessage").show();
+				}
+			});
+		});
+	});
+});	
+	</script>
+  <!-- end scripts-->
+
+  <!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.
+       chromium.org/developers/how-tos/chrome-frame-getting-started -->
+  <!--[if lt IE 7 ]>
+    <script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
+    <script>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
+  <![endif]-->
+  
+</body>
+</html>
