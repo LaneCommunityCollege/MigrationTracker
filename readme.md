@@ -3,7 +3,8 @@ Lane Migration Tracker
 
 As [Lane](http://www.lanecc.edu) migrated it's pages from DreamWeaver and Contribute to a CMS (Drupal), we needed a place to keep track of what the old and new urls were.
 
-Here's a sample workflow:
+Sample Workflow
+---------------
 1. A student is going to migrate the content at /contact.html to a new page in the cms /contact. There is one link on /contact.html: to /about.html.
 2. When creating the link to /about, the student looks at the migration tracker, to see if anyone has already migrated /about.html. If they have, the student knows the node number for /about, and can link that right away. If no one has, the student creates a new, empty, 'stub' page for /about, and creates an entry with the status 'Stub' for /about.html in the Migration Tracker.
 3. The student creates an entry in the migration tracker for /contact, with the status 'Review'.
